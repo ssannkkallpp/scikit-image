@@ -223,13 +223,13 @@ def censure_keypoints(image, n_scales=7, mode='DoB', non_max_threshold=0.15,
         for i in range(2, n_scales):
             c = (OCTAGON_OUTER_SHAPE[i - 1][0] - 1) // 2 \
                 + OCTAGON_OUTER_SHAPE[i - 1][1]
-            cumulative_mask |= _remove_border_keypoints(image, keypoints, c) \
+            cumulative_mask |= _mask_border_keypoints(image, keypoints, c) \
                                & (scales == i)
     elif mode == 'star':
         for i in range(2, n_scales):
             c = STAR_SHAPE[STAR_FILTER_SHAPE[i - 1][0]] \
                 + STAR_SHAPE[STAR_FILTER_SHAPE[i - 1][0]] // 2
-            cumulative_mask |= _remove_border_keypoints(image, keypoints, c) \
+            cumulative_mask |= _mask_border_keypoints(image, keypoints, c) \
                                & (scales == i)
 
     return keypoints[cumulative_mask], scales[cumulative_mask]
