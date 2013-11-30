@@ -533,7 +533,7 @@ def save_all_figures(image_path):
         # Set the fig_num figure as the current figure as we can't
         # save a figure that's not the current figure.
         plt.figure(fig_num)
-        plt.savefig(image_path.format(fig_num))
+        plt.savefig(image_path.format(fig_num), bbox_inches='tight')
         figure_list.append(image_fmt_str.format(fig_num))
     return figure_list
 
