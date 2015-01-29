@@ -123,8 +123,52 @@ class GeometricTransform(object):
         raise NotImplementedError()
 
 
+class FundamentalMatrixTransform(GeometricTransform):
+
+    def __init__(self, matrix=None, method=8):
+        if matrix is None:
+            # default to an identity transform
+            matrix = np.eye(3)
+        if matrix.shape != (3, 3):
+            raise ValueError("invalid shape of transformation matrix")
+        self.params = matrix
+
+        if method not in (8,):
+            raise ValueError("Only eight-point algorithm supported")
+        self.method = 8
+
+    def estimate(self, src, dst):
+        assert src.shape == dst.shape
+        assert src.shape[0] == 8
+
+        try:
+            src_matrix, src = _center_and_normalize_points(src)
+            dst_matrix, dst = _center_and_normalize_points(dst)
+        except ZeroDivisionError:
+            self.params = np.nan * np.empty((3, 3))
+            return
+
+        # Design matrix: dst' * F * src
+        A = np.zeros((8, 9))
+        A[:, :3] = src
+        A[:, :3] = dst[:, 0]
+        A[:, 3:6] = src
+        A[:, 3:6] = dst[:, 1]
+        A[:, 6:] = src
+
+        _, _, V = np.linalg.svd(A)
+
+        F_normalized = V[:, -1].reshape(3, 3)
+
+        U, S, V = np.linalg.svd(F_normalized)
+        S[2, 2] = 0
+        F = np.dot(U, np.dot(S, V))
+
+        self.params = np.dot(np.linalg.inv(dst_matrix), np.dot(F, src_matrix))
+
+
 class ProjectiveTransform(GeometricTransform):
-    """Matrix transformation.
+    """Projective transformation.
 
     Apply a projective transformation (homography) on coordinates.
 
