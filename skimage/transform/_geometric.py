@@ -166,6 +166,21 @@ class FundamentalMatrixTransform(GeometricTransform):
 
         self.params = np.dot(np.linalg.inv(dst_matrix), np.dot(F, src_matrix))
 
+    def residuals(self, src, dst):
+        # Distance of points to to epipolar line
+
+        src_h = np.column_stack([src, np.ones((src.shape[0]))])
+        dst_h = np.column_stack([dst, np.ones((dst.shape[0]))])
+
+        Fsrc = np.dot(F, src_h.T)
+        Ftdst = np.dot(F.T, dst_h.T)
+
+        dsttFsrc = np.sum(dst_h.T * Fsrc, axis=0)
+
+        return 0.5 * np.abs(dsttFsrc) * (
+                1 / np.sqrt(Fsrc[0] ** 2 + Fsrc[1] ** 2) +
+                1 / np.sqrt(Ftdst[0] ** 2 + Ftdst[1] ** 2))
+
 
 class ProjectiveTransform(GeometricTransform):
     """Projective transformation.
